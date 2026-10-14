@@ -104,7 +104,6 @@ def fields_for_row(row: dict, epoch: datetime) -> dict[str, str]:
 
     last, first, middle = split_name(text("Name: Last, First M", "Name"))
     rank = text("Rank")
-    separation = date_text(get_cell("Separation Date", "REFRAD"), epoch)
     return {
         "Last_Name": last,
         "First_Name": first,
@@ -120,11 +119,11 @@ def fields_for_row(row: dict, epoch: datetime) -> dict[str, str]:
         "Service_Affiliation": "Army",
         "Work_Email": text("Personal Email"),
         "Post_Transition_Location": text("Home of Record"),
-        # These optional columns can be added to the supplied roster layout.
-        "Separation_Date": separation,
-        "Departure_Date": date_text(get_cell("Departure Date"), epoch) or separation,
+        "Separation_Date": "10/05/2027",
+        "Departure_Date": "10/05/2027",
         "MOS": text("MOS"),
-        "Unit_Name": text("Unit Name"),
+        "Unit_Name": "237th Support Maintenance Company",
+        # These optional columns can be added to the supplied roster layout.
         "Salary": text("Salary", "Wanted Salary or current salary"),
         "Field_of_Interest": text("Field of Interest", "Job Title"),
     }

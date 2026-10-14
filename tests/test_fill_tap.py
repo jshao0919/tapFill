@@ -18,7 +18,7 @@ HEADERS = [
     "GTC/Last 4/ EXP", "CAC Exp:", "Home of Record", "ACFT", "H/W", "PSIP",
     "Food Restrictions/MRE Type", "Blood type", "Vaccine", "Deployment Orders Issued",
     "State Drivers License", "Military Drivers License", "DTS Login",
-    "Gender<br><br><br>",
+    "Gender", "MOS",
 ]
 
 
@@ -50,7 +50,8 @@ class FillTapTests(unittest.TestCase):
             "Contact Number": "0123456789", "&#x20;Army Email": "jane@example.test",
             "Personal Email": "personal@example.test", "DOB": datetime(1990, 3, 4),
             "DOD ID": "0012345678", "Home of Record": "Texas",
-            "Gender<br><br><br>": "Female", "Anniversary Year Ending Date (MM/DD)": "05/01",
+            "Gender": "Female", "MOS": "91B",
+            "Anniversary Year Ending Date (MM/DD)": "05/01",
         }])
         self.assertEqual(self.run_batch(path), (1, 0))
         reader = PdfReader(self.root / "pdfs" / "Smith_tapForm.pdf")
@@ -61,7 +62,9 @@ class FillTapTests(unittest.TestCase):
             "Service_Affiliation": "Army", "Cell_Phone": "0123456789",
             "Work_Email": "personal@example.test", "Date_of_Birth": "03/04/1990",
             "DoD_ID": "0012345678", "Gender": "Female", "Post_Transition_Location": "Texas",
-            "Separation_Date": "", "Departure_Date": "", "SkillBridge_Yes": "/Off",
+            "Separation_Date": "10/05/2027", "Departure_Date": "10/05/2027",
+            "Unit_Name": "237th Support Maintenance Company", "MOS": "91B",
+            "SkillBridge_Yes": "/Off",
             "Caregiver_No": "/Off",
         }
         for name, value in expected.items():
@@ -88,6 +91,13 @@ class FillTapTests(unittest.TestCase):
         self.assertEqual(fields["Work_Email"]["/V"], "fallback@example.test")
         self.assertEqual(fields["Middle_Initial"]["/V"], "")
         self.assertEqual(fields["Date_of_Birth"]["/V"], "")
+        for pdf in directory.glob("*.pdf"):
+            with self.subTest(pdf=pdf.name):
+                pdf_fields = PdfReader(pdf).get_fields()
+                self.assertEqual(pdf_fields["Unit_Name"]["/V"], "237th Support Maintenance Company")
+                self.assertEqual(pdf_fields["Separation_Date"]["/V"], "10/05/2027")
+                self.assertEqual(pdf_fields["Departure_Date"]["/V"], "10/05/2027")
+                self.assertEqual(pdf_fields["MOS"]["/V"], "")
         self.assertEqual(PdfReader(directory / "Smith_2_tapForm.pdf").get_fields()["Grade"]["/V"], "")
         original = (directory / "Smith_tapForm.pdf").read_bytes()
         self.assertEqual(self.run_batch(path), (3, 0))
@@ -112,11 +122,13 @@ class FillTapTests(unittest.TestCase):
         fields = PdfReader(self.root / "pdfs" / "Smith_tapForm.pdf").get_fields()
         self.assertEqual(fields["Work_Email"]["/V"], "")
 
-    def test_optional_dates_numeric_padding_and_filename_safety(self):
+    def test_fixed_defaults_override_roster_and_preserve_numeric_padding(self):
         book = Workbook()
         sheet = book.active
-        sheet.append(["Name: Last, First M", "DOD ID", "DOB", "Separation Date", "MOS"])
-        sheet.append(["../Jones, Alex B", 12345, 32876, "2026-10-13", "25B"])
+        sheet.append(["Name: Last, First M", "DOD ID", "DOB", "Separation Date", "MOS",
+                      "Departure Date", "REFRAD", "Unit Name"])
+        sheet.append(["../Jones, Alex B", 12345, 32876, "2026-10-13", "25B",
+                      "2028-01-01", "2029-01-01", "Different Unit"])
         sheet["B2"].number_format = "0000000000"
         path = self.root / "optional.xlsx"
         book.save(path)
@@ -128,8 +140,9 @@ class FillTapTests(unittest.TestCase):
         fields = PdfReader(files[0]).get_fields()
         self.assertEqual(fields["DoD_ID"]["/V"], "0000012345")
         self.assertEqual(fields["Date_of_Birth"]["/V"], "01/03/1990")
-        self.assertEqual(fields["Separation_Date"]["/V"], "10/13/2026")
-        self.assertEqual(fields["Departure_Date"]["/V"], "10/13/2026")
+        self.assertEqual(fields["Separation_Date"]["/V"], "10/05/2027")
+        self.assertEqual(fields["Departure_Date"]["/V"], "10/05/2027")
+        self.assertEqual(fields["Unit_Name"]["/V"], "237th Support Maintenance Company")
         self.assertEqual(fields["MOS"]["/V"], "25B")
 
     def test_cli_sheet_and_errors(self):

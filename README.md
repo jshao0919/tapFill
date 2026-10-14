@@ -23,8 +23,12 @@ The first nonempty row must contain column headers; blank rows are skipped.
 | DOD ID | DoD ID |
 | Home of Record | Post-transition location |
 | Gender | Gender |
+| MOS | MOS |
 
 Component is always **RC**, UIC is **WS64AA**, and service affiliation is **Army**.
+Unit name is always **237th Support Maintenance Company**. Both the separation
+and departure/REFRAD date fields are always **10/05/2027** (October 5, 2027),
+regardless of any unit or date values in the spreadsheet.
 Grades: PVT/PV1 → E1, PV2 → E2, PFC → E3, SPC/CPL → E4, SGT → E5,
 SSG → E6, SFC → E7, MSG/1SG → E8, and SGM/CSM/SMA → E9. Full rank names
 and E1–E9 (including hyphens) are also accepted. Unknown ranks leave grade blank.
@@ -34,10 +38,9 @@ fields. Missing values remain blank, including the yes/no checkboxes. Existing
 printed form defaults, including the TAP center and leaving reason, are retained.
 Army Email is ignored; the PDF's Work Email field uses Personal Email only.
 
-Optional extra columns: `Separation Date` (or `REFRAD`), `Departure Date`, `MOS`,
-`Unit Name`, `Salary`, and `Field of Interest` (or `Job Title`). When a separation
-date is supplied without a departure date, it fills both dates. The anniversary
-year ending date is not used as a separation date.
+Optional extra columns: `Salary` and `Field of Interest` (or `Job Title`). MOS
+can be omitted or left blank; processing continues with a blank PDF MOS field.
+The anniversary year ending date is not used as a separation date.
 
 Names must use `Last, First M`, for example `Smith, Jane A`. A trailing single
 letter or letter with a period is treated as the middle initial. Without a comma,
